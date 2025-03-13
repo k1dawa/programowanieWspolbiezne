@@ -4,5 +4,6 @@
 
 | Name Surname (initials) | GUID                                     |
 | ----------------------- | ---------------------------------------- |
-| AB                      | `{FD9D086C-532F-4AAC-BB99-69D7798837D8}` |
-| Jan Kowalski            | `{44FBFCF5-4430-4964-878D-1867DC679E0D}` |
+| k1dawa                  | {C4D4A7F8-265F-42AD-B86A-03A1003F752C}   |
+| zuziiia                 | {D7C99AEF-5481-4F67-8323-6BC06E50C3F6}   |
+| Thybi                   | {ED3C70DF-B724-43FC-98AF-AFD6D7358E4B}   |
