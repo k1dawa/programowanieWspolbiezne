@@ -32,7 +32,7 @@ namespace TP.ConcurrentProgramming.Data
 
     #region private
 
-    private Vector Position;
+    public Vector Position { get; private set; }
 
     private void RaiseNewPositionChangeNotification()
     {
@@ -41,7 +41,7 @@ namespace TP.ConcurrentProgramming.Data
 
     internal void Move(Vector delta)
     {
-      Position = new Vector(Position.x + delta.x, Position.y + delta.y);
+      Position = new Vector(Position.X + delta.X, Position.Y + delta.Y);
       RaiseNewPositionChangeNotification();
     }
 

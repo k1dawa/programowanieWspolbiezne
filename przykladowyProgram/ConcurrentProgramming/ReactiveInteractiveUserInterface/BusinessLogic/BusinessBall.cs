@@ -27,7 +27,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
     private void RaisePositionChangeEvent(object? sender, Data.IVector e)
     {
-      NewPositionNotification?.Invoke(this, new Position(e.x, e.y));
+      NewPositionNotification?.Invoke(this, new Position(e.X, e.Y));
     }
 
     #endregion private

@@ -45,12 +45,12 @@ namespace TP.ConcurrentProgramming.Data
     /// <summary>
     /// The X component of the vector.
     /// </summary>
-    double x { get; init; }
+    double X { get; }
 
     /// <summary>
     /// The y component of the vector.
     /// </summary>
-    double y { get; init; }
+    double Y { get; }
   }
 
   public interface IBall
