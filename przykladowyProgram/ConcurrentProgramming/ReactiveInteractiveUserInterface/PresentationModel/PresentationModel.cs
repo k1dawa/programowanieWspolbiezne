@@ -29,7 +29,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
         public override void Dispose()
         {
             if (_disposed)
-                throw new ObjectDisposedException(nameof(PresentationModel));
+                return;
 
             _logicLayer.Dispose();
             _disposed = true;

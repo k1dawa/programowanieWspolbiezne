@@ -58,9 +58,17 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
         private void ClearBalls()
         {
             Balls.Clear();
+            try
+            {
+                ModelLayer.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
             ModelLayer.Dispose();
             ModelLayer = ModelAbstractApi.CreateModel();
             Observer = ModelLayer.Subscribe<ModelIBall>(x => Balls.Add(x));
+            Disposed = false;
         }
 
         private void AddBall()
