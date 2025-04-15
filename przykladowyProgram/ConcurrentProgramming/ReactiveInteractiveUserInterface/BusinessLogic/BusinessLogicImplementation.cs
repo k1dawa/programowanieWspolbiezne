@@ -46,11 +46,34 @@ namespace TP.ConcurrentProgramming.BusinessLogic
       layerBellow.Start(numberOfBalls, (startingPosition, databall) => upperLayerHandler(new Position(startingPosition.X, startingPosition.X), new Ball(databall)));
     }
 
-    #endregion BusinessLogicAbstractAPI
+    public override void AddBall(Action<IPosition, IBall> upperLayerHandler)
+    {
+        if (Disposed)
+            throw new ObjectDisposedException(nameof(BusinessLogicImplementation));
 
-    #region private
+        if (upperLayerHandler == null)
+            throw new ArgumentNullException(nameof(upperLayerHandler));
 
-    private bool Disposed = false;
+        layerBellow.AddBall((position, ball) =>
+        {
+            var wrappedPosition = new Position(position.X, position.Y);
+            var wrappedBall = new Ball(ball);
+            upperLayerHandler(wrappedPosition, wrappedBall);
+        });
+    }
+
+    public override void RemoveLastBall()
+    {
+        if (Disposed)
+            throw new ObjectDisposedException(nameof(BusinessLogicImplementation));
+
+        layerBellow.RemoveLastBall();
+    }
+        #endregion BusinessLogicAbstractAPI
+
+        #region private
+
+        private bool Disposed = false;
 
     private readonly UnderneathLayerAPI layerBellow;
 

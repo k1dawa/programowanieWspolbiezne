@@ -52,6 +52,20 @@ namespace TP.ConcurrentProgramming.Presentation.Model
             BallChanged?.Invoke(this, new BallChangedEventArgs { Ball = newBall });
         }
 
+        public override void AddBall(Action<IBall> observer)
+        {
+            _logicLayer.AddBall((pos, logicBall) =>
+            {
+                var modelBall = new ModelBall(pos.X, pos.Y, logicBall) { Diameter = 20.0 };
+                observer(modelBall);
+            });
+        }
+
+        public override void RemoveLastBall()
+        {
+            _logicLayer.RemoveLastBall();
+        }
+
         #endregion
     }
 

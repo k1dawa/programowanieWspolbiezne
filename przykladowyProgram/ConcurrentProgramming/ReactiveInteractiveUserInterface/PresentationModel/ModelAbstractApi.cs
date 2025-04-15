@@ -27,10 +27,12 @@ namespace TP.ConcurrentProgramming.Presentation.Model
     }
 
     public abstract void Start(int numberOfBalls);
+    public abstract void AddBall(Action<IBall> observer);
+    public abstract void RemoveLastBall();
 
-    #region IObservable
+        #region IObservable
 
-    public abstract IDisposable Subscribe(IObserver<IBall> observer);
+        public abstract IDisposable Subscribe(IObserver<IBall> observer);
 
     #endregion IObservable
 
@@ -44,6 +46,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
 
     private static Lazy<ModelAbstractApi> modelInstance = new Lazy<ModelAbstractApi>(() => new PresentationModel());
 
-    #endregion private
-  }
+        #endregion private
+
+    }
 }
