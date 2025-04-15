@@ -64,10 +64,20 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
 
     private class DataLayerConstructorFixcure : Data.DataAbstractAPI
     {
+      public override void RemoveLastBall()
+      {
+        throw new NotImplementedException();
+      }
+
       public override void Dispose()
       { }
 
       public override void Start(int numberOfBalls, Action<IVector, Data.IBall> upperLayerHandler)
+      {
+        throw new NotImplementedException();
+      }
+
+      public override void AddBall(Action<IVector, Data.IBall> upperLayerHandler)
       {
         throw new NotImplementedException();
       }
@@ -76,6 +86,11 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
     private class DataLayerDisposeFixcure : Data.DataAbstractAPI
     {
       internal bool Disposed = false;
+
+      public override void RemoveLastBall()
+      {
+        throw new NotImplementedException();
+      }
 
       public override void Dispose()
       {
@@ -86,12 +101,22 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       {
         throw new NotImplementedException();
       }
+
+      public override void AddBall(Action<IVector, Data.IBall> upperLayerHandler)
+      {
+        throw new NotImplementedException();
+      }
     }
 
     private class DataLayerStartFixcure : Data.DataAbstractAPI
     {
       internal bool StartCalled = false;
       internal int NumberOfBallseCreated = -1;
+
+      public override void RemoveLastBall()
+      {
+        throw new NotImplementedException();
+      }
 
       public override void Dispose()
       { }
@@ -103,10 +128,15 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
         upperLayerHandler(new DataVectorFixture(), new DataBallFixture());
       }
 
+      public override void AddBall(Action<IVector, Data.IBall> upperLayerHandler)
+      {
+        throw new NotImplementedException();
+      }
+
       private record DataVectorFixture : Data.IVector
       {
-        public double x { get; init; }
-        public double y { get; init; }
+        public double X { get; init; }
+        public double Y { get; init; }
       }
 
       private class DataBallFixture : Data.IBall

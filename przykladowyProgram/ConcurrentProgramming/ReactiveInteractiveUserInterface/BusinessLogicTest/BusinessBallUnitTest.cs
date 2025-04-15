@@ -40,13 +40,14 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
 
     private class VectorFixture : Data.IVector
     {
-      internal VectorFixture(double X, double Y)
+      internal VectorFixture(double XComponent, double YComponent)
       {
-        x = X; y = Y;
+        X = XComponent;
+        Y = YComponent;
       }
 
-      public double x { get; init; }
-      public double y { get; init; }
+      public double X { get; init; }
+      public double Y{ get; init; }
     }
 
     #endregion testing instrumentation

@@ -20,8 +20,8 @@ namespace TP.ConcurrentProgramming.Data.Test
       double XComponent = randomGenerator.NextDouble();
       double YComponent = randomGenerator.NextDouble();
       Vector newInstance = new(XComponent, YComponent);
-      Assert.AreEqual<double>(XComponent, newInstance.x);
-      Assert.AreEqual<double>(YComponent, newInstance.y);
+      Assert.AreEqual<double>(XComponent, newInstance.X);
+      Assert.AreEqual<double>(YComponent, newInstance.Y);
     }
   }
 }
