@@ -18,7 +18,7 @@
             <TextBlock VerticalAlignment="Center" Margin="10,0">Liczba kul:</TextBlock>
             <TextBox Width="50" Text="{Binding NumberOfBallsToAdd}" Margin="10,0" />
 
-            <Button Content="Start" Command="{Binding StartSimulationCommand}" Margin="10,0" />
+            <Button Content="Start" Click="StartButton_Click" Margin="10,0" />
             <Button Content="Wyczyść" Command="{Binding ClearBallsCommand}" Margin="10,0" />
             <Button Content="Dodaj kulę" Command="{Binding AddBallCommand}" Margin="10,0" />
             <Button Content="Usuń kulę" Command="{Binding RemoveBallCommand}" Margin="10,0" />
@@ -26,25 +26,27 @@
 
         <!-- plansza -->
         <Viewbox Stretch="Uniform" Margin="40">
-            <Border BorderBrush="Red" BorderThickness="2" Width="400" Height="400">
-                <ItemsControl ItemsSource="{Binding Balls}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Canvas />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Ellipse Width="{Binding Diameter}" Height="{Binding Diameter}" Fill="Orange" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <ItemsControl.ItemContainerStyle>
-                        <Style TargetType="ContentPresenter">
-                            <Setter Property="Canvas.Top" Value="{Binding Top}" />
-                            <Setter Property="Canvas.Left" Value="{Binding Left}" />
-                        </Style>
-                    </ItemsControl.ItemContainerStyle>
-                </ItemsControl>
+            <Border BorderBrush="Red" BorderThickness="2">
+                <Canvas x:Name="MyCanvas" Width="400" Height="400">
+                    <ItemsControl ItemsSource="{Binding Balls}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Ellipse Width="{Binding Diameter}" Height="{Binding Diameter}" Fill="Orange" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Canvas.Top" Value="{Binding Top}" />
+                                <Setter Property="Canvas.Left" Value="{Binding Left}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                    </ItemsControl>
+                </Canvas>
             </Border>
         </Viewbox>
     </DockPanel>

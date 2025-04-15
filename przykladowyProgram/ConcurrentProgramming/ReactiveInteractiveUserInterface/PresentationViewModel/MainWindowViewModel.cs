@@ -16,7 +16,6 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
             ModelLayer = modelLayerAPI == null ? ModelAbstractApi.CreateModel() : modelLayerAPI;
             Observer = ModelLayer.Subscribe<ModelIBall>(x => Balls.Add(x));
 
-            StartSimulationCommand = new RelayCommand(StartSimulation);
             ClearBallsCommand = new RelayCommand(ClearBalls);
             AddBallCommand = new RelayCommand(AddBall);
             RemoveBallCommand = new RelayCommand(RemoveBall);
@@ -40,7 +39,6 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
             }
         }
 
-        public ICommand StartSimulationCommand { get; }
         public ICommand ClearBallsCommand { get; }
         public ICommand AddBallCommand { get; }
         public ICommand RemoveBallCommand { get; }
@@ -49,12 +47,12 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
 
         #region Methods
 
-        private void StartSimulation()
+        public void StartSimulationWithSize(double width, double height)
         {
             if (Disposed)
                 throw new ObjectDisposedException(nameof(MainWindowViewModel));
 
-            ModelLayer.Start(NumberOfBallsToAdd);
+            ModelLayer.Start(NumberOfBallsToAdd, width, height);
         }
 
         private void ClearBalls()

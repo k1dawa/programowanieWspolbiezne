@@ -37,30 +37,31 @@ namespace TP.ConcurrentProgramming.BusinessLogic
       Disposed = true;
     }
 
-    public override void Start(int numberOfBalls, Action<IPosition, IBall> upperLayerHandler)
-    {
-      if (Disposed)
-        throw new ObjectDisposedException(nameof(BusinessLogicImplementation));
-      if (upperLayerHandler == null)
-        throw new ArgumentNullException(nameof(upperLayerHandler));
-      layerBellow.Start(numberOfBalls, (startingPosition, databall) => upperLayerHandler(new Position(startingPosition.X, startingPosition.X), new Ball(databall)));
-    }
-
-    public override void AddBall(Action<IPosition, IBall> upperLayerHandler)
+    public override void Start(int numberOfBalls, double tableWidth, double tableHeight, Action<IPosition, IBall> upperLayerHandler)
     {
         if (Disposed)
             throw new ObjectDisposedException(nameof(BusinessLogicImplementation));
 
-        if (upperLayerHandler == null)
-            throw new ArgumentNullException(nameof(upperLayerHandler));
-
-        layerBellow.AddBall((position, ball) =>
+        layerBellow.Start(numberOfBalls, tableWidth, tableHeight, (vector, ball) =>
         {
-            var wrappedPosition = new Position(position.X, position.Y);
-            var wrappedBall = new Ball(ball);
-            upperLayerHandler(wrappedPosition, wrappedBall);
+            upperLayerHandler(new Position(vector.X, vector.Y), new Ball(ball));
         });
     }
+    public override void AddBall(Action<IPosition, IBall> upperLayerHandler)
+{
+    if (Disposed)
+        throw new ObjectDisposedException(nameof(BusinessLogicImplementation));
+
+    if (upperLayerHandler == null)
+        throw new ArgumentNullException(nameof(upperLayerHandler));
+
+    layerBellow.AddBall((position, ball) =>
+    {
+        var wrappedPosition = new Position(position.X, position.Y);
+        var wrappedBall = new Ball(ball);
+        upperLayerHandler(wrappedPosition, wrappedBall);
+    });
+}
 
     public override void RemoveLastBall()
     {
