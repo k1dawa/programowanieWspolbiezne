@@ -80,6 +80,16 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel.Test
         Started = numberOfBalls;
       }
 
+      public override void AddBall(Action<IBall> observer)
+      {
+        throw new NotImplementedException();
+      }
+
+      public override void RemoveLastBall()
+      {
+        throw new NotImplementedException();
+      }
+
       public override IDisposable Subscribe(IObserver<ModelIBall> observer)
       {
         Subscribed++;
@@ -118,6 +128,11 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel.Test
 
       #region ModelAbstractApi fixture
 
+      public override void RemoveLastBall()
+      {
+        throw new NotImplementedException();
+      }
+
       public override IDisposable? Subscribe(IObserver<ModelIBall> observer)
       {
         return eventObservable?.Subscribe(x => observer.OnNext(x.EventArgs.Ball), ex => observer.OnError(ex), () => observer.OnCompleted());
@@ -130,6 +145,11 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel.Test
           ModelBall newBall = new ModelBall(0, 0) { };
           BallChanged?.Invoke(this, new BallChaneEventArgs() { Ball = newBall });
         }
+      }
+
+      public override void AddBall(Action<IBall> observer)
+      {
+        throw new NotImplementedException();
       }
 
       public override void Dispose()

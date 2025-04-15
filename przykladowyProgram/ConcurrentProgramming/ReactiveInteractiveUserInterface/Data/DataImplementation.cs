@@ -87,8 +87,8 @@ namespace TP.ConcurrentProgramming.Data
         private List<Ball> BallsList = new();
 
         // Parametry planszy
-        private const double TableWidth = 400;
-        private const double TableHeight = 400;
+        private const double TableWidth = 390;
+        private const double TableHeight = 390;
         private const double BallRadius = 10;
 
         private void Move(object? _)

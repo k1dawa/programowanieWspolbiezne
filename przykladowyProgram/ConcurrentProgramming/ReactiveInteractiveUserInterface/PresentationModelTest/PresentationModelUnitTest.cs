@@ -9,7 +9,7 @@
 //_____________________________________________________________________________________________________________________________________
 
 using TP.ConcurrentProgramming.BusinessLogic;
-
+using TP.ConcurrentProgramming.Presentation.Model;
 namespace TP.ConcurrentProgramming.Presentation.Model.Test
 {
   [TestClass]
@@ -62,6 +62,11 @@ namespace TP.ConcurrentProgramming.Presentation.Model.Test
 
       #region BusinessLogicAbstractAPI
 
+      public override void RemoveLastBall()
+      {
+        throw new NotImplementedException();
+      }
+
       public override void Dispose()
       {
         Disposed = true;
@@ -71,6 +76,11 @@ namespace TP.ConcurrentProgramming.Presentation.Model.Test
       {
         NumberOfBalls = numberOfBalls;
         Assert.IsNotNull(upperLayerHandler);
+      }
+
+      public override void AddBall(Action<IPosition, BusinessLogic.IBall> handler)
+      {
+        throw new NotImplementedException();
       }
 
       #endregion BusinessLogicAbstractAPI
