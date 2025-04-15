@@ -9,8 +9,7 @@
 //_____________________________________________________________________________________________________________________________________
 
 using TP.ConcurrentProgramming.BusinessLogic;
-using TP.ConcurrentProgramming.Presentation.Model;
-namespace TP.ConcurrentProgramming.Presentation.Model.Test
+namespace TP.ConcurrentProgramming.PresentationModelTest
 {
   [TestClass]
   public class PresentationModelUnitTest

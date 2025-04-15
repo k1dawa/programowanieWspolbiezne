@@ -13,9 +13,10 @@ using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using TP.ConcurrentProgramming.Presentation.Model;
+using TP.ConcurrentProgramming.Presentation.ViewModel;
 using ModelIBall = TP.ConcurrentProgramming.Presentation.Model.IBall;
 
-namespace TP.ConcurrentProgramming.Presentation.ViewModel.Test
+namespace TP.ConcurrentProgramming.PresentationViewModelTest
 {
   [TestClass]
   public class MainWindowViewModelUnitTest
