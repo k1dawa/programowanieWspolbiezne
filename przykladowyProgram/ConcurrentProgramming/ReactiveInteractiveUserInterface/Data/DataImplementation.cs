@@ -131,6 +131,32 @@ namespace TP.ConcurrentProgramming.Data
             }
         }
 
+        public override void AddBall(Action<IVector, IBall> upperLayerHandler)
+        {
+            if (Disposed)
+                throw new ObjectDisposedException(nameof(DataImplementation));
+            if (upperLayerHandler == null)
+                throw new ArgumentNullException(nameof(upperLayerHandler));
+
+            Random random = new Random();
+            double startX = random.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
+            double startY = random.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
+            Vector startingPosition = new(startX, startY);
+            Vector velocity = new((random.NextDouble() - 0.5) * 2, (random.NextDouble() - 0.5) * 2);
+
+            Ball newBall = new(startingPosition, velocity);
+            BallsList.Add(newBall);
+            upperLayerHandler(startingPosition, newBall);
+        }
+
+        public override void RemoveLastBall()
+        {
+            if (Disposed)
+                throw new ObjectDisposedException(nameof(DataImplementation));
+            if (BallsList.Count > 0)
+                BallsList.RemoveAt(BallsList.Count - 1);
+        }
+
         #endregion private
 
         #region TestingInfrastructure

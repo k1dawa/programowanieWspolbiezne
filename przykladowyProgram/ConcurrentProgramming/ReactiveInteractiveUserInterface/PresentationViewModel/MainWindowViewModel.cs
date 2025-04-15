@@ -18,6 +18,8 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
 
             StartSimulationCommand = new RelayCommand(StartSimulation);
             ClearBallsCommand = new RelayCommand(ClearBalls);
+            AddBallCommand = new RelayCommand(AddBall);
+            RemoveBallCommand = new RelayCommand(RemoveBall);
         }
 
         #region Properties and Commands
@@ -40,6 +42,8 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
 
         public ICommand StartSimulationCommand { get; }
         public ICommand ClearBallsCommand { get; }
+        public ICommand AddBallCommand { get; }
+        public ICommand RemoveBallCommand { get; }
 
         #endregion
 
@@ -59,6 +63,26 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
             ModelLayer.Dispose();
             ModelLayer = ModelAbstractApi.CreateModel();
             Observer = ModelLayer.Subscribe<ModelIBall>(x => Balls.Add(x));
+        }
+
+        private void AddBall()
+        {
+            if (Disposed)
+                throw new ObjectDisposedException(nameof(MainWindowViewModel));
+
+            ModelLayer.AddBall(ball => Balls.Add(ball));
+        }
+
+        private void RemoveBall()
+        {
+            if (Disposed)
+                throw new ObjectDisposedException(nameof(MainWindowViewModel));
+
+            if (Balls.Count > 0)
+            {
+                Balls.RemoveAt(Balls.Count - 1);
+                ModelLayer.RemoveLastBall();
+            }
         }
 
         #endregion
@@ -97,4 +121,6 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
 
         #endregion
     }
+
+
 }
