@@ -57,8 +57,8 @@ namespace TP.ConcurrentProgramming.Data.Test
           (startingPosition, ball) =>
           {
             numberOfCallbackInvoked++;
-            Assert.IsTrue(startingPosition.x >= 0);
-            Assert.IsTrue(startingPosition.y >= 0);
+            Assert.IsTrue(startingPosition.X >= 0);
+            Assert.IsTrue(startingPosition.Y >= 0);
             Assert.IsNotNull(ball);
           });
         Assert.AreEqual<int>(numberOfBalls2Create, numberOfCallbackInvoked);

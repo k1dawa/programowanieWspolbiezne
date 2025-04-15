@@ -105,8 +105,8 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
 
       private record DataVectorFixture : Data.IVector
       {
-        public double x { get; init; }
-        public double y { get; init; }
+        public double X { get; init; }
+        public double Y { get; init; }
       }
 
       private class DataBallFixture : Data.IBall

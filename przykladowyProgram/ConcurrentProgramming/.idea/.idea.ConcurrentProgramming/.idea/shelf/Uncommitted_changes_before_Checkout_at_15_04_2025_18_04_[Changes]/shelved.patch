@@ -1,0 +1,11 @@
+Index: .gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore	(revision e1e80ab9f170a305581b09061ae48f49522edfc8)
++++ b/.gitignore	(date 1744733058690)
+@@ -1,0 +1,1 @@
++.idea
+\ No newline at end of file

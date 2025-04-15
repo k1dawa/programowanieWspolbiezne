@@ -20,8 +20,8 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       double initialX = random.NextDouble();
       double initialY = random.NextDouble();
       IPosition position = new Position(initialX, initialY);
-      Assert.AreEqual<double>(initialX, position.x);
-      Assert.AreEqual<double>(initialY, position.y);
+      Assert.AreEqual<double>(initialX, position.X);
+      Assert.AreEqual<double>(initialY, position.Y);
     }
   }
 }
