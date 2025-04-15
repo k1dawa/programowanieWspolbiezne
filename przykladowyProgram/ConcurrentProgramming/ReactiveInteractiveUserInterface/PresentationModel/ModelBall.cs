@@ -52,7 +52,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
       }
     }
 
-    public double Diameter { get; init; } = 0;
+    public double Diameter { get; init; }
 
     #region INotifyPropertyChanged
 

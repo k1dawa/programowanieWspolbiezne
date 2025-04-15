@@ -28,6 +28,7 @@ namespace TP.ConcurrentProgramming.Data
             X = XComponent;
             Y = YComponent;
         }
+        public double Length => Math.Sqrt(X * X + Y * Y);
 
         //operator odejmowania
         public static Vector operator -(Vector a, Vector b)

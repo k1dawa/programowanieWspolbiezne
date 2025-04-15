@@ -20,14 +20,28 @@ namespace TP.ConcurrentProgramming.PresentationView
   {
     public MainWindow()
     {
-      Random random = new Random();
       InitializeComponent();
-      MainWindowViewModel viewModel = (MainWindowViewModel)DataContext;
-      double screenWidth = SystemParameters.PrimaryScreenWidth;
-      double screenHeight = SystemParameters.PrimaryScreenHeight;
-      viewModel.Start(random.Next(5, 10));
     }
-
+  private void StartButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (int.TryParse(BallCountTextBox.Text, out int ballCount) && ballCount > 0)
+      {
+        MainWindowViewModel viewModel = (MainWindowViewModel)DataContext;
+        viewModel.Start(ballCount);
+      }
+      else
+      {
+        MessageBox.Show("Proszę podać poprawną liczbę kul (liczbę większą od 0).", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+      }
+    }
+  
+    private void StopButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (DataContext is MainWindowViewModel viewModel)
+      {
+        viewModel.Dispose(); // Lub viewModel.Stop() jeśli masz taką metodę
+      }
+    }
     /// <summary>
     /// Raises the <seealso cref="System.Windows.Window.Closed"/> event.
     /// </summary>

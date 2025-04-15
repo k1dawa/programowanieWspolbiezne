@@ -45,7 +45,7 @@ namespace TP.ConcurrentProgramming.Data
                 Vector startingPosition = new(startX, startY); // ✅ Deklaracja przed użyciem
                 Vector velocity = new Vector((random.NextDouble() - 0.5) * 2, (random.NextDouble() - 0.5) * 2);
 
-                Ball newBall = new(startingPosition, velocity); // ✅ OK
+                Ball newBall = new(startingPosition, velocity,BallRadius*2); // ✅ OK
                 upperLayerHandler(startingPosition, newBall);
                 BallsList.Add(newBall);
             }
@@ -127,7 +127,8 @@ namespace TP.ConcurrentProgramming.Data
 
                 // zaktualizuj prędkość i pozycję
                 ball.Velocity = new Vector(newVelX, newVelY);
-                ball.Move(newPosition - ball.Position);
+                Vector delta = new Vector(ball.Velocity.X, ball.Velocity.Y);
+                ball.Move(delta, TableWidth, TableHeight);
             }
         }
 
