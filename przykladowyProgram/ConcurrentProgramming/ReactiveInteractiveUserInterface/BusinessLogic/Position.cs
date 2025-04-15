@@ -14,8 +14,8 @@ namespace TP.ConcurrentProgramming.BusinessLogic
   {
     #region IPosition
 
-    public double x { get; init; }
-    public double y { get; init; }
+    public double X { get; init; }
+    public double Y { get; init; }
 
     #endregion IPosition
 
@@ -24,8 +24,8 @@ namespace TP.ConcurrentProgramming.BusinessLogic
     /// </summary>
     public Position(double posX, double posY)
     {
-      x = posX;
-      y = posY;
+      X = posX;
+      Y = posY;
     }
   }
 }

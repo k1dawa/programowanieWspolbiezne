@@ -54,8 +54,8 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
   public interface IPosition
   {
-    double x { get; init; }
-    double y { get; init; }
+    double X { get; init; }
+    double Y { get; init; }
   }
 
   public interface IBall 

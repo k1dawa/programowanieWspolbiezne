@@ -42,7 +42,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
 
     #region private
 
-    private static Lazy<ModelAbstractApi> modelInstance = new Lazy<ModelAbstractApi>(() => new ModelImplementation());
+    private static Lazy<ModelAbstractApi> modelInstance = new Lazy<ModelAbstractApi>(() => new PresentationModel());
 
     #endregion private
   }
