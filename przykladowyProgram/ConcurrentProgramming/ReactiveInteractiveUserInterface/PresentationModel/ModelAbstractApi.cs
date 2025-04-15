@@ -25,8 +25,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
     {
       return modelInstance.Value;
     }
-
-    public abstract void Start(int numberOfBalls);
+    public abstract void Start(int numberOfBalls, double tableWidth, double tableHeight);
     public abstract void AddBall(Action<IBall> observer);
     public abstract void RemoveLastBall();
 

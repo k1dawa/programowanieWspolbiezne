@@ -16,9 +16,9 @@ namespace TP.ConcurrentProgramming.Presentation.Model
             _eventStream = Observable.FromEventPattern<BallChangedEventArgs>(this, nameof(BallChanged));
         }
 
-        public override void Start(int numberOfBalls)
+        public override void Start(int numberOfBalls, double tableWidth, double tableHeight)
         {
-            _logicLayer.Start(numberOfBalls, BallCreatedHandler);
+            _logicLayer.Start(numberOfBalls, tableWidth, tableHeight, BallCreatedHandler);
         }
 
         public override IDisposable Subscribe(IObserver<IBall> observer)

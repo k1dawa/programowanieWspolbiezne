@@ -1,4 +1,4 @@
-﻿//____________________________________________________________________________________________________________________________________
+//____________________________________________________________________________________________________________________________________
 //
 //  Copyright (C) 2024, Mariusz Postol LODZ POLAND.
 //
@@ -28,8 +28,10 @@ namespace TP.ConcurrentProgramming.Data
 
         #region DataAbstractAPI
 
-        public override void Start(int numberOfBalls, Action<IVector, IBall> upperLayerHandler)
+        public override void Start(int numberOfBalls, double tableWidth, double tableHeight, Action<IVector, IBall> upperLayerHandler)
         {
+            this.TableWidth = tableWidth;
+            this.TableHeight = tableHeight;
             if (Disposed)
                 throw new ObjectDisposedException(nameof(DataImplementation));
             if (upperLayerHandler == null)
@@ -38,14 +40,13 @@ namespace TP.ConcurrentProgramming.Data
             Random random = new Random();
             for (int i = 0; i < numberOfBalls; i++)
             {
-                // Generuj początkową pozycję w środku planszy z marginesem
-                double startX = random.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
-                double startY = random.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
+                double startX = random.NextDouble() * (TableWidth - 2 * BallRadius);
+                double startY = random.NextDouble() * (TableHeight - 2 * BallRadius);
 
-                Vector startingPosition = new(startX, startY); // ✅ Deklaracja przed użyciem
+                Vector startingPosition = new(startX, startY); 
                 Vector velocity = new Vector((random.NextDouble() - 0.5) * 2, (random.NextDouble() - 0.5) * 2);
 
-                Ball newBall = new(startingPosition, velocity); // ✅ OK
+                Ball newBall = new(startingPosition, velocity); 
                 upperLayerHandler(startingPosition, newBall);
                 BallsList.Add(newBall);
             }
@@ -87,25 +88,25 @@ namespace TP.ConcurrentProgramming.Data
         private List<Ball> BallsList = new();
 
         // Parametry planszy
-        private const double TableWidth = 390;
-        private const double TableHeight = 390;
+        private double TableWidth;
+        private double TableHeight;
         private const double BallRadius = 10;
 
         private void Move(object? _)
         {
-            foreach (Ball ball in BallsList)
+            foreach (Ball ball in BallsList.ToList())
             {
                 Vector newPosition = (Vector)ball.Position + (Vector)ball.Velocity;
 
-                double minX = BallRadius;
-                double maxX = TableWidth - BallRadius;
-                double minY = BallRadius;
-                double maxY = TableHeight - BallRadius;
+                double minX = 0;
+                double maxX = TableWidth - 2 * BallRadius;
+                double minY = 0;
+                double maxY = TableHeight - 2 * BallRadius;
 
                 double newVelX = ball.Velocity.X;
                 double newVelY = ball.Velocity.Y;
 
-                // odbijanie od lewej / prawej
+                // odbijanie 
                 if (newPosition.X <= minX || newPosition.X >= maxX)
                 {
                     newVelX *= -1;
@@ -139,8 +140,8 @@ namespace TP.ConcurrentProgramming.Data
                 throw new ArgumentNullException(nameof(upperLayerHandler));
 
             Random random = new Random();
-            double startX = random.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
-            double startY = random.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
+            double startX = random.NextDouble() * (TableWidth - 2 * BallRadius);
+            double startY = random.NextDouble() * (TableHeight - 2 * BallRadius);
             Vector startingPosition = new(startX, startY);
             Vector velocity = new((random.NextDouble() - 0.5) * 2, (random.NextDouble() - 0.5) * 2);
 
