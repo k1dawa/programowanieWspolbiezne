@@ -55,10 +55,19 @@ namespace TP.ConcurrentProgramming.Data
     double Y { get; }
   }
 
-  public interface IBall
-  {
-    event EventHandler<IVector> NewPositionNotification;
+    public interface IBall
+    {
+        event EventHandler<IVector> NewPositionNotification;
 
-    IVector Velocity { get; set; }
-  }
+        IVector Velocity { get; set; }
+
+        double Diameter { get; }
+
+        double Mass { get; }
+
+        double Radius { get; }
+
+        IVector Position { get; }
+    }
+
 }

@@ -29,16 +29,21 @@ namespace TP.ConcurrentProgramming.Data
             Y = YComponent;
         }
 
-        //operator odejmowania
-        public static Vector operator -(Vector a, Vector b)
+        public static Vector operator -(Vector a, Vector b) => new(a.X - b.X, a.Y - b.Y);
+        public static Vector operator +(Vector a, Vector b) => new(a.X + b.X, a.Y + b.Y);
+        public static Vector operator *(Vector v, double scalar) => new(v.X * scalar, v.Y * scalar);
+        public static Vector operator *(double scalar, Vector v) => v * scalar;
+        public static Vector operator /(Vector v, double scalar) => new(v.X / scalar, v.Y / scalar);
+
+        public static double Dot(Vector a, Vector b) => a.X * b.X + a.Y * b.Y;
+
+        public double Length => Math.Sqrt(X * X + Y * Y);
+
+        public Vector Normalize()
         {
-            return new Vector(a.X - b.X, a.Y - b.Y);
+            double length = Length;
+            return length == 0 ? new Vector(0, 0) : new Vector(X / length, Y / length);
         }
 
-        //operator dodawania
-        public static Vector operator +(Vector a, Vector b)
-        {
-            return new Vector(a.X + b.X, a.Y + b.Y);
-        }
     }
 }
