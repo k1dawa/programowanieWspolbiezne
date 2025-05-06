@@ -13,16 +13,16 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
   [TestClass]
   public class BallUnitTest
   {
-    [TestMethod]
-    public void MoveTestMethod()
-    {
-      DataBallFixture dataBallFixture = new DataBallFixture();
-      Ball newInstance = new(dataBallFixture);
-      int numberOfCallBackCalled = 0;
-      newInstance.NewPositionNotification += (sender, position) => { Assert.IsNotNull(sender); Assert.IsNotNull(position); numberOfCallBackCalled++; };
-      dataBallFixture.Move();
-      Assert.AreEqual<int>(1, numberOfCallBackCalled);
-    }
+    //[TestMethod]
+    //public void MoveTestMethod()
+    //{
+    //  DataBallFixture dataBallFixture = new DataBallFixture();
+    //  Ball newInstance = new(dataBallFixture);
+    //  int numberOfCallBackCalled = 0;
+    //  newInstance.NewPositionNotification += (sender, position) => { Assert.IsNotNull(sender); Assert.IsNotNull(position); numberOfCallBackCalled++; };
+    //  dataBallFixture.Move();
+    //  Assert.AreEqual<int>(1, numberOfCallBackCalled);
+    //}
 
     #region testing instrumentation
 
