@@ -1,18 +1,9 @@
-//____________________________________________________________________________________________________________________________________
-//
-//  Copyright (C) 2024, Mariusz Postol LODZ POLAND.
-//
-//  To be in touch join the community by pressing the `Watch` button and get started commenting using the discussion panel at
-//
-//  https://github.com/mpostol/TP/discussions/182
-//
-//_____________________________________________________________________________________________________________________________________
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -20,7 +11,8 @@ namespace TP.ConcurrentProgramming.Data
     {
         public DataImplementation()
         {
-            MoveTimer = new Timer(Move, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(16));
+            MoveTaskTokenSource = new CancellationTokenSource();
+            MoveTask = Task.Run(() => MoveLoopAsync(MoveTaskTokenSource.Token));
         }
 
         public override void Start(int numberOfBalls, double tableWidth, double tableHeight, Action<IVector, IBall> upperLayerHandler)
@@ -30,22 +22,24 @@ namespace TP.ConcurrentProgramming.Data
 
             if (Disposed)
                 throw new ObjectDisposedException(nameof(DataImplementation));
-
             if (upperLayerHandler == null)
                 throw new ArgumentNullException(nameof(upperLayerHandler));
 
             Random rand = new();
 
-            for (int i = 0; i < numberOfBalls; i++)
+            lock (BallsList)
             {
-                double x = rand.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
-                double y = rand.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
-                Vector position = new(x, y);
-                Vector velocity = new((rand.NextDouble() - 0.5) * 2, (rand.NextDouble() - 0.5) * 2);
+                for (int i = 0; i < numberOfBalls; i++)
+                {
+                    double x = rand.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
+                    double y = rand.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
+                    Vector position = new(x, y);
+                    Vector velocity = new((rand.NextDouble() - 0.5) * 2, (rand.NextDouble() - 0.5) * 2);
 
-                Ball newBall = new(position, velocity);
-                BallsList.Add(newBall);
-                upperLayerHandler(position, newBall);
+                    Ball newBall = new(position, velocity);
+                    BallsList.Add(newBall);
+                    upperLayerHandler(position, newBall);
+                }
             }
         }
 
@@ -61,7 +55,12 @@ namespace TP.ConcurrentProgramming.Data
             Vector velocity = new((rand.NextDouble() - 0.5) * 2, (rand.NextDouble() - 0.5) * 2);
 
             Ball newBall = new(position, velocity);
-            BallsList.Add(newBall);
+
+            lock (BallsList)
+            {
+                BallsList.Add(newBall);
+            }
+
             upperLayerHandler(position, newBall);
         }
 
@@ -70,11 +69,31 @@ namespace TP.ConcurrentProgramming.Data
             if (Disposed)
                 throw new ObjectDisposedException(nameof(DataImplementation));
 
-            if (BallsList.Count > 0)
-                BallsList.RemoveAt(BallsList.Count - 1);
+            lock (BallsList)
+            {
+                if (BallsList.Count > 0)
+                    BallsList.RemoveAt(BallsList.Count - 1);
+            }
         }
 
-        private void Move(object? _)
+        private async Task MoveLoopAsync(CancellationToken token)
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    lock (BallsList)
+                    {
+                        Move();
+                    }
+
+                    await Task.Delay(16, token); // ~60 FPS
+                }
+            }
+            catch (TaskCanceledException) { }
+        }
+
+        private void Move()
         {
             if (Disposed) return;
 
@@ -149,8 +168,14 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (disposing)
                 {
-                    MoveTimer.Dispose();
-                    BallsList.Clear();
+                    MoveTaskTokenSource?.Cancel();
+                    MoveTask?.Wait();
+                    MoveTaskTokenSource?.Dispose();
+
+                    lock (BallsList)
+                    {
+                        BallsList.Clear();
+                    }
                 }
                 Disposed = true;
             }
@@ -163,19 +188,35 @@ namespace TP.ConcurrentProgramming.Data
         }
 
         private bool Disposed = false;
-        private readonly Timer MoveTimer;
+        private Task? MoveTask;
+        private CancellationTokenSource? MoveTaskTokenSource;
         private readonly List<Ball> BallsList = new();
         private double TableWidth;
         private double TableHeight;
         private const double BallRadius = 10;
 
         [Conditional("DEBUG")]
-        internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList) => returnBallsList(BallsList);
+        internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList)
+        {
+            lock (BallsList)
+            {
+                returnBallsList(BallsList);
+            }
+        }
 
         [Conditional("DEBUG")]
-        internal void CheckNumberOfBalls(Action<int> returnNumberOfBalls) => returnNumberOfBalls(BallsList.Count);
+        internal void CheckNumberOfBalls(Action<int> returnNumberOfBalls)
+        {
+            lock (BallsList)
+            {
+                returnNumberOfBalls(BallsList.Count);
+            }
+        }
 
         [Conditional("DEBUG")]
-        internal void CheckObjectDisposed(Action<bool> returnInstanceDisposed) => returnInstanceDisposed(Disposed);
+        internal void CheckObjectDisposed(Action<bool> returnInstanceDisposed)
+        {
+            returnInstanceDisposed(Disposed);
+        }
     }
 }
