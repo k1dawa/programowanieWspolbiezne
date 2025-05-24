@@ -34,7 +34,7 @@ namespace TP.ConcurrentProgramming.Data
                     double x = rand.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
                     double y = rand.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
                     Vector position = new(x, y);
-                    Vector velocity = new((rand.NextDouble() - 0.5) * 2, (rand.NextDouble() - 0.5) * 2);
+                    Vector velocity = new((rand.NextDouble() - 0.5) * 200, (rand.NextDouble() - 0.5) * 200);
 
                     Ball newBall = new(position, velocity);
                     BallsList.Add(newBall);
@@ -52,7 +52,7 @@ namespace TP.ConcurrentProgramming.Data
             double x = rand.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
             double y = rand.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
             Vector position = new(x, y);
-            Vector velocity = new((rand.NextDouble() - 0.5) * 2, (rand.NextDouble() - 0.5) * 2);
+            Vector velocity = new((rand.NextDouble() - 0.5) * 200, (rand.NextDouble() - 0.5) * 200);
 
             Ball newBall = new(position, velocity);
 
@@ -78,22 +78,25 @@ namespace TP.ConcurrentProgramming.Data
 
         private async Task MoveLoopAsync(CancellationToken token)
         {
-            try
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    lock (BallsList)
-                    {
-                        Move();
-                    }
+            var stopwatch = Stopwatch.StartNew();
+            long lastTick = stopwatch.ElapsedMilliseconds;
 
-                    await Task.Delay(16, token); // ~60 FPS
+            while (!token.IsCancellationRequested)
+            {
+                long now = stopwatch.ElapsedMilliseconds;
+                double deltaTime = (now - lastTick) / 1000.0; // sekundy
+                lastTick = now;
+
+                lock (BallsList)
+                {
+                    Move(deltaTime);
                 }
+
+                await Task.Delay(1, token); // nie blokuj CPU
             }
-            catch (TaskCanceledException) { }
         }
 
-        private void Move()
+        private void Move(double deltaTime)
         {
             if (Disposed) return;
 
@@ -109,7 +112,8 @@ namespace TP.ConcurrentProgramming.Data
             // aktualizacja pozycji i odbicia od ścian
             foreach (Ball ball in BallsList)
             {
-                Vector newPosition = (Vector)ball.Position + (Vector)ball.Velocity;
+                Vector deltaPosition = ((Vector)ball.Velocity) * deltaTime;
+                Vector newPosition = (Vector)ball.Position + deltaPosition;
 
                 double minX = BallRadius;
                 double maxX = TableWidth - BallRadius;
@@ -169,7 +173,14 @@ namespace TP.ConcurrentProgramming.Data
                 if (disposing)
                 {
                     MoveTaskTokenSource?.Cancel();
-                    MoveTask?.Wait();
+
+                    try
+                    {
+                        MoveTask?.Wait();
+                    }
+                    catch (AggregateException ex) when (ex.InnerExceptions.All(e => e is TaskCanceledException))
+                    {}
+
                     MoveTaskTokenSource?.Dispose();
 
                     lock (BallsList)
@@ -177,6 +188,7 @@ namespace TP.ConcurrentProgramming.Data
                         BallsList.Clear();
                     }
                 }
+
                 Disposed = true;
             }
         }
