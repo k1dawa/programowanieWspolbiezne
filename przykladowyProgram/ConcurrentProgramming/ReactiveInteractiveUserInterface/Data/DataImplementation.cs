@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -13,6 +15,8 @@ namespace TP.ConcurrentProgramming.Data
         {
             MoveTaskTokenSource = new CancellationTokenSource();
             MoveTask = Task.Run(() => MoveLoopAsync(MoveTaskTokenSource.Token));
+            LogTaskTokenSource = new CancellationTokenSource();
+            LogTask = Task.Run(() => WriteLogToFile(LogTaskTokenSource.Token));
         }
 
         public override void Start(int numberOfBalls, double tableWidth, double tableHeight, Action<IVector, IBall> upperLayerHandler)
@@ -34,7 +38,7 @@ namespace TP.ConcurrentProgramming.Data
                     double x = rand.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
                     double y = rand.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
                     Vector position = new(x, y);
-                    Vector velocity = new((rand.NextDouble() - 0.5) * 2, (rand.NextDouble() - 0.5) * 2);
+                    Vector velocity = new((rand.NextDouble() - 0.5) * 200, (rand.NextDouble() - 0.5) * 200);
 
                     Ball newBall = new(position, velocity);
                     BallsList.Add(newBall);
@@ -52,7 +56,7 @@ namespace TP.ConcurrentProgramming.Data
             double x = rand.NextDouble() * (TableWidth - 2 * BallRadius) + BallRadius;
             double y = rand.NextDouble() * (TableHeight - 2 * BallRadius) + BallRadius;
             Vector position = new(x, y);
-            Vector velocity = new((rand.NextDouble() - 0.5) * 2, (rand.NextDouble() - 0.5) * 2);
+            Vector velocity = new((rand.NextDouble() - 0.5) * 200, (rand.NextDouble() - 0.5) * 200);
 
             Ball newBall = new(position, velocity);
 
@@ -78,22 +82,25 @@ namespace TP.ConcurrentProgramming.Data
 
         private async Task MoveLoopAsync(CancellationToken token)
         {
-            try
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    lock (BallsList)
-                    {
-                        Move();
-                    }
+            var stopwatch = Stopwatch.StartNew();
+            long lastTick = stopwatch.ElapsedMilliseconds;
 
-                    await Task.Delay(16, token); // ~60 FPS
+            while (!token.IsCancellationRequested)
+            {
+                long now = stopwatch.ElapsedMilliseconds;
+                double deltaTime = (now - lastTick) / 1000.0; // sekundy
+                lastTick = now;
+
+                lock (BallsList)
+                {
+                    Move(deltaTime);
                 }
+
+                await Task.Delay(1, token); // nie blokuj CPU
             }
-            catch (TaskCanceledException) { }
         }
 
-        private void Move()
+        private void Move(double deltaTime)
         {
             if (Disposed) return;
 
@@ -109,7 +116,8 @@ namespace TP.ConcurrentProgramming.Data
             // aktualizacja pozycji i odbicia od ścian
             foreach (Ball ball in BallsList)
             {
-                Vector newPosition = (Vector)ball.Position + (Vector)ball.Velocity;
+                Vector deltaPosition = ((Vector)ball.Velocity) * deltaTime;
+                Vector newPosition = (Vector)ball.Position + deltaPosition;
 
                 double minX = BallRadius;
                 double maxX = TableWidth - BallRadius;
@@ -133,6 +141,9 @@ namespace TP.ConcurrentProgramming.Data
 
                 ball.Velocity = new Vector(velX, velY);
                 ball.Move(newPosition - (Vector)ball.Position);
+
+                // Logowanie pozycji
+                LogQueue.Enqueue($"{DateTime.Now:HH:mm:ss.fff};{ball.Id};{newPosition.X:F2};{newPosition.Y:F2}");
             }
         }
 
@@ -161,6 +172,33 @@ namespace TP.ConcurrentProgramming.Data
             ballA.Velocity = (Vector)ballA.Velocity - correctionA;
             ballB.Velocity = (Vector)ballB.Velocity + correctionB;
         }
+        
+
+        private async Task WriteLogToFile(CancellationToken token)
+        {
+            try
+            {
+                string path = Path.Combine(AppContext.BaseDirectory, "diagnostics.csv");
+
+                Console.WriteLine($"Zapisuję do: {path}");
+                System.Diagnostics.Debug.WriteLine($"Zapisuję do: {path}");
+
+                using var writer = new StreamWriter(path, append: true);
+
+                while (!token.IsCancellationRequested)
+                {
+                    while (LogQueue.TryDequeue(out string? log))
+                    {
+                        await writer.WriteLineAsync(log);
+                    }
+
+                    await writer.FlushAsync();
+                    await Task.Delay(3000, token);
+                }
+            }
+            catch (TaskCanceledException) { }
+        }
+
 
         protected void Dispose(bool disposing)
         {
@@ -169,7 +207,14 @@ namespace TP.ConcurrentProgramming.Data
                 if (disposing)
                 {
                     MoveTaskTokenSource?.Cancel();
-                    MoveTask?.Wait();
+
+                    try
+                    {
+                        MoveTask?.Wait();
+                    }
+                    catch (AggregateException ex) when (ex.InnerExceptions.All(e => e is TaskCanceledException))
+                    {}
+
                     MoveTaskTokenSource?.Dispose();
 
                     lock (BallsList)
@@ -177,6 +222,7 @@ namespace TP.ConcurrentProgramming.Data
                         BallsList.Clear();
                     }
                 }
+
                 Disposed = true;
             }
         }
@@ -189,7 +235,10 @@ namespace TP.ConcurrentProgramming.Data
 
         private bool Disposed = false;
         private Task? MoveTask;
+        private Task? LogTask;
         private CancellationTokenSource? MoveTaskTokenSource;
+        private CancellationTokenSource? LogTaskTokenSource;
+        private readonly ConcurrentQueue<string> LogQueue = new();
         private readonly List<Ball> BallsList = new();
         private double TableWidth;
         private double TableHeight;

@@ -13,8 +13,12 @@ namespace TP.ConcurrentProgramming.Data
 {
     internal class Ball : IBall
     {
+        private static int GlobalId = 0;
+        public int Id { get; }
+
         public Ball(Vector initialPosition, Vector initialVelocity, double diameter = 20, double mass = 1)
         {
+            Id = Interlocked.Increment(ref GlobalId);
             Position = initialPosition;
             Velocity = initialVelocity;
             Diameter = diameter;

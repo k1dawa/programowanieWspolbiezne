@@ -50,9 +50,9 @@ namespace TP.ConcurrentProgramming.BusinessLogic
     public override void AddBall(Action<IPosition, IBall> upperLayerHandler)
 {
     if (Disposed)
-        throw new ObjectDisposedException(nameof(BusinessLogicImplementation));
+            throw new ObjectDisposedException(nameof(BusinessLogicImplementation));
 
-    if (upperLayerHandler == null)
+            if (upperLayerHandler == null)
         throw new ArgumentNullException(nameof(upperLayerHandler));
 
     layerBellow.AddBall((position, ball) =>
