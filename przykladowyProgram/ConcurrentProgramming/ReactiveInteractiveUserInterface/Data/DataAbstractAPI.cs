@@ -14,15 +14,9 @@ namespace TP.ConcurrentProgramming.Data
     {
         #region Layer Factory
 
-        private static Lazy<DataAbstractAPI> dataInstance = new(() => new DataImplementation());
         public static DataAbstractAPI GetDataLayer()
         {
-            return dataInstance.Value;
-        }
-
-        public static void ResetDataLayer()
-        {
-            dataInstance = new(() => new DataImplementation());
+            return modelInstance.Value;
         }
 
         #endregion Layer Factory
@@ -48,7 +42,7 @@ namespace TP.ConcurrentProgramming.Data
 
         #endregion private
     }
-    public interface IVector
+  public interface IVector
   {
     /// <summary>
     /// The X component of the vector.
@@ -76,4 +70,4 @@ namespace TP.ConcurrentProgramming.Data
         IVector Position { get; }
     }
 
-    }
+}

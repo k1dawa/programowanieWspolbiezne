@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -13,6 +15,8 @@ namespace TP.ConcurrentProgramming.Data
         {
             MoveTaskTokenSource = new CancellationTokenSource();
             MoveTask = Task.Run(() => MoveLoopAsync(MoveTaskTokenSource.Token));
+            LogTaskTokenSource = new CancellationTokenSource();
+            LogTask = Task.Run(() => WriteLogToFile(LogTaskTokenSource.Token));
         }
 
         public override void Start(int numberOfBalls, double tableWidth, double tableHeight, Action<IVector, IBall> upperLayerHandler)
@@ -137,6 +141,9 @@ namespace TP.ConcurrentProgramming.Data
 
                 ball.Velocity = new Vector(velX, velY);
                 ball.Move(newPosition - (Vector)ball.Position);
+
+                // Logowanie pozycji
+                LogQueue.Enqueue($"{DateTime.Now:HH:mm:ss.fff};{ball.Id};{newPosition.X:F2};{newPosition.Y:F2}");
             }
         }
 
@@ -165,6 +172,30 @@ namespace TP.ConcurrentProgramming.Data
             ballA.Velocity = (Vector)ballA.Velocity - correctionA;
             ballB.Velocity = (Vector)ballB.Velocity + correctionB;
         }
+
+        private async Task WriteLogToFile(CancellationToken token)
+        {
+            try
+            {
+                string path = @"C:\Users\mkida\source\repos\programowanieWspolbiezne\przykladowyProgram\diagnostics.csv";
+                using var writer = new StreamWriter(path, append: true);
+
+                while (!token.IsCancellationRequested)
+                {
+                    while (LogQueue.TryDequeue(out string? log))
+                    {
+                        await writer.WriteLineAsync(log);
+                    }
+
+                    await writer.FlushAsync();
+
+                    //zapis co 3 sekundy
+                    await Task.Delay(3000, token);
+                }
+            }
+            catch (TaskCanceledException) { }
+        }
+
 
         protected void Dispose(bool disposing)
         {
@@ -201,7 +232,10 @@ namespace TP.ConcurrentProgramming.Data
 
         private bool Disposed = false;
         private Task? MoveTask;
+        private Task? LogTask;
         private CancellationTokenSource? MoveTaskTokenSource;
+        private CancellationTokenSource? LogTaskTokenSource;
+        private readonly ConcurrentQueue<string> LogQueue = new();
         private readonly List<Ball> BallsList = new();
         private double TableWidth;
         private double TableHeight;

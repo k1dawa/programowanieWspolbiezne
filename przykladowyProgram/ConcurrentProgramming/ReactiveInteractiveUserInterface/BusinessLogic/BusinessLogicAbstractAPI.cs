@@ -12,25 +12,18 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 {
   public abstract class BusinessLogicAbstractAPI : IDisposable
   {
-        #region Layer Factory
-
-    private static Lazy<BusinessLogicAbstractAPI> logicInstance = new(() => new BusinessLogicImplementation());
+    #region Layer Factory
 
     public static BusinessLogicAbstractAPI GetBusinessLogicLayer()
     {
-        return logicInstance.Value;
+      return modelInstance.Value;
     }
 
-    public static void ResetLogicLayer()
-    {
-        logicInstance = new(() => new BusinessLogicImplementation());
-    }
+    #endregion Layer Factory
 
-        #endregion Layer Factory
+    #region Layer API
 
-        #region Layer API
-
-        public static readonly Dimensions GetDimensions = new(10.0, 10.0, 10.0);
+    public static readonly Dimensions GetDimensions = new(10.0, 10.0, 10.0);
 
     public abstract void Start(int numberOfBalls, double tableWidth, double tableHeight, Action<IPosition, IBall> upperLayerHandler);
     public abstract void AddBall(Action<IPosition, IBall> handler);
@@ -45,6 +38,8 @@ namespace TP.ConcurrentProgramming.BusinessLogic
     #endregion Layer API
 
     #region private
+
+    private static Lazy<BusinessLogicAbstractAPI> modelInstance = new Lazy<BusinessLogicAbstractAPI>(() => new BusinessLogicImplementation());
 
     #endregion private
   }
