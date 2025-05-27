@@ -180,7 +180,6 @@ namespace TP.ConcurrentProgramming.Data
             {
                 string path = Path.Combine(AppContext.BaseDirectory, "diagnostics.csv");
 
-                // DODAJ TO - żeby zobaczyć gdzie zapisuje
                 Console.WriteLine($"Zapisuję do: {path}");
                 System.Diagnostics.Debug.WriteLine($"Zapisuję do: {path}");
 
