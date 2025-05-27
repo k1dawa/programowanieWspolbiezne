@@ -172,12 +172,18 @@ namespace TP.ConcurrentProgramming.Data
             ballA.Velocity = (Vector)ballA.Velocity - correctionA;
             ballB.Velocity = (Vector)ballB.Velocity + correctionB;
         }
+        
 
         private async Task WriteLogToFile(CancellationToken token)
         {
             try
             {
-                string path = @"C:\Users\mkida\source\repos\programowanieWspolbiezne\przykladowyProgram\diagnostics.csv";
+                string path = Path.Combine(AppContext.BaseDirectory, "diagnostics.csv");
+
+                // DODAJ TO - żeby zobaczyć gdzie zapisuje
+                Console.WriteLine($"Zapisuję do: {path}");
+                System.Diagnostics.Debug.WriteLine($"Zapisuję do: {path}");
+
                 using var writer = new StreamWriter(path, append: true);
 
                 while (!token.IsCancellationRequested)
@@ -188,8 +194,6 @@ namespace TP.ConcurrentProgramming.Data
                     }
 
                     await writer.FlushAsync();
-
-                    //zapis co 3 sekundy
                     await Task.Delay(3000, token);
                 }
             }
