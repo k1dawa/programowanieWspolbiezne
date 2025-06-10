@@ -14,14 +14,17 @@ namespace TP.ConcurrentProgramming.Data
     {
         public DataImplementation()
         {
-            MoveTimer = new System.Timers.Timer(1); // Wywołanie co 1 ms
+            MoveTimer = new System.Timers.Timer(1); // co 1 ms
             MoveTimer.Elapsed += OnMoveTimerElapsed;
             MoveTimer.AutoReset = true;
             lastUpdateTime = DateTime.UtcNow;
             MoveTimer.Start();
-
-            LogTaskTokenSource = new CancellationTokenSource();
-            LogTask = Task.Run(() => WriteLogToFile(LogTaskTokenSource.Token));
+            LogTimer = new System.Timers.Timer(100); // co 100 ms
+            LogTimer.Elapsed += OnLogTimerElapsed;
+            LogTimer.AutoReset = true;
+            LogTimer.Start();
+            
+        
         }
 
         public override void Start(int numberOfBalls, double tableWidth, double tableHeight, Action<IVector, IBall> upperLayerHandler)
@@ -169,29 +172,25 @@ namespace TP.ConcurrentProgramming.Data
             ballB.Velocity = (Vector)ballB.Velocity + correctionB;
         }
 
-        private async Task WriteLogToFile(CancellationToken token)
+        private void OnLogTimerElapsed(object? sender, ElapsedEventArgs e)
         {
-            try
+            if (Disposed) return;
+
+            lock (LogFileLock)
             {
-                string path = Path.Combine(AppContext.BaseDirectory, "diagnostics.csv");
-
-                Console.WriteLine($"Zapisuję do: {path}");
-                Debug.WriteLine($"Zapisuję do: {path}");
-
-                using var writer = new StreamWriter(path, append: true);
-
-                while (!token.IsCancellationRequested)
+                try
                 {
+                    using var writer = new StreamWriter(LogFilePath, append: true);
                     while (LogQueue.TryDequeue(out string? log))
                     {
-                        await writer.WriteLineAsync(log);
+                        writer.WriteLine(log);
                     }
-
-                    await writer.FlushAsync();
-                    await Task.Delay(3000, token);
+                }
+                catch (IOException ex)
+                {
+                    Debug.WriteLine($"[Log Write] IO error: {ex.Message}");
                 }
             }
-            catch (TaskCanceledException) { }
         }
 
         protected void Dispose(bool disposing)
@@ -203,16 +202,8 @@ namespace TP.ConcurrentProgramming.Data
                     MoveTimer?.Stop();
                     MoveTimer?.Dispose();
 
-                    LogTaskTokenSource?.Cancel();
-
-                    try
-                    {
-                        LogTask?.Wait();
-                    }
-                    catch (AggregateException ex) when (ex.InnerExceptions.All(e => e is TaskCanceledException))
-                    { }
-
-                    LogTaskTokenSource?.Dispose();
+                    LogTimer?.Stop();
+                    LogTimer?.Dispose();
 
                     lock (BallsList)
                     {
@@ -231,8 +222,6 @@ namespace TP.ConcurrentProgramming.Data
         }
 
         private bool Disposed = false;
-        private Task? LogTask;
-        private CancellationTokenSource? LogTaskTokenSource;
         private readonly ConcurrentQueue<string> LogQueue = new();
         private readonly List<Ball> BallsList = new();
         private double TableWidth;
@@ -240,7 +229,11 @@ namespace TP.ConcurrentProgramming.Data
         private const double BallRadius = 10;
 
         private System.Timers.Timer? MoveTimer;
+        private System.Timers.Timer? LogTimer;
         private DateTime lastUpdateTime;
+
+        private readonly object LogFileLock = new();
+        private readonly string LogFilePath = Path.Combine(AppContext.BaseDirectory, "diagnostics.csv");
 
         [Conditional("DEBUG")]
         internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList)
