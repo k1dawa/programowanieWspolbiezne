@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
+using System.Timers;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -13,8 +14,12 @@ namespace TP.ConcurrentProgramming.Data
     {
         public DataImplementation()
         {
-            MoveTaskTokenSource = new CancellationTokenSource();
-            MoveTask = Task.Run(() => MoveLoopAsync(MoveTaskTokenSource.Token));
+            MoveTimer = new System.Timers.Timer(1); // Wywołanie co 1 ms
+            MoveTimer.Elapsed += OnMoveTimerElapsed;
+            MoveTimer.AutoReset = true;
+            lastUpdateTime = DateTime.UtcNow;
+            MoveTimer.Start();
+
             LogTaskTokenSource = new CancellationTokenSource();
             LogTask = Task.Run(() => WriteLogToFile(LogTaskTokenSource.Token));
         }
@@ -80,23 +85,17 @@ namespace TP.ConcurrentProgramming.Data
             }
         }
 
-        private async Task MoveLoopAsync(CancellationToken token)
+        private void OnMoveTimerElapsed(object? sender, ElapsedEventArgs e)
         {
-            var stopwatch = Stopwatch.StartNew();
-            long lastTick = stopwatch.ElapsedMilliseconds;
+            if (Disposed) return;
 
-            while (!token.IsCancellationRequested)
+            lock (BallsList)
             {
-                long now = stopwatch.ElapsedMilliseconds;
-                double deltaTime = (now - lastTick) / 1000.0; // sekundy
-                lastTick = now;
+                var now = DateTime.UtcNow;
+                double deltaTime = (now - lastUpdateTime).TotalSeconds;
+                lastUpdateTime = now;
 
-                lock (BallsList)
-                {
-                    Move(deltaTime);
-                }
-
-                await Task.Delay(1, token); // nie blokuj CPU
+                Move(deltaTime);
             }
         }
 
@@ -104,7 +103,6 @@ namespace TP.ConcurrentProgramming.Data
         {
             if (Disposed) return;
 
-            // kolizje między kulami
             for (int i = 0; i < BallsList.Count; i++)
             {
                 for (int j = i + 1; j < BallsList.Count; j++)
@@ -113,7 +111,6 @@ namespace TP.ConcurrentProgramming.Data
                 }
             }
 
-            // aktualizacja pozycji i odbicia od ścian
             foreach (Ball ball in BallsList)
             {
                 Vector deltaPosition = ((Vector)ball.Velocity) * deltaTime;
@@ -142,7 +139,6 @@ namespace TP.ConcurrentProgramming.Data
                 ball.Velocity = new Vector(velX, velY);
                 ball.Move(newPosition - (Vector)ball.Position);
 
-                // Logowanie pozycji
                 LogQueue.Enqueue($"{DateTime.Now:HH:mm:ss.fff};{ball.Id};{newPosition.X:F2};{newPosition.Y:F2}");
             }
         }
@@ -172,7 +168,6 @@ namespace TP.ConcurrentProgramming.Data
             ballA.Velocity = (Vector)ballA.Velocity - correctionA;
             ballB.Velocity = (Vector)ballB.Velocity + correctionB;
         }
-        
 
         private async Task WriteLogToFile(CancellationToken token)
         {
@@ -181,7 +176,7 @@ namespace TP.ConcurrentProgramming.Data
                 string path = Path.Combine(AppContext.BaseDirectory, "diagnostics.csv");
 
                 Console.WriteLine($"Zapisuję do: {path}");
-                System.Diagnostics.Debug.WriteLine($"Zapisuję do: {path}");
+                Debug.WriteLine($"Zapisuję do: {path}");
 
                 using var writer = new StreamWriter(path, append: true);
 
@@ -199,23 +194,25 @@ namespace TP.ConcurrentProgramming.Data
             catch (TaskCanceledException) { }
         }
 
-
         protected void Dispose(bool disposing)
         {
             if (!Disposed)
             {
                 if (disposing)
                 {
-                    MoveTaskTokenSource?.Cancel();
+                    MoveTimer?.Stop();
+                    MoveTimer?.Dispose();
+
+                    LogTaskTokenSource?.Cancel();
 
                     try
                     {
-                        MoveTask?.Wait();
+                        LogTask?.Wait();
                     }
                     catch (AggregateException ex) when (ex.InnerExceptions.All(e => e is TaskCanceledException))
-                    {}
+                    { }
 
-                    MoveTaskTokenSource?.Dispose();
+                    LogTaskTokenSource?.Dispose();
 
                     lock (BallsList)
                     {
@@ -234,15 +231,16 @@ namespace TP.ConcurrentProgramming.Data
         }
 
         private bool Disposed = false;
-        private Task? MoveTask;
         private Task? LogTask;
-        private CancellationTokenSource? MoveTaskTokenSource;
         private CancellationTokenSource? LogTaskTokenSource;
         private readonly ConcurrentQueue<string> LogQueue = new();
         private readonly List<Ball> BallsList = new();
         private double TableWidth;
         private double TableHeight;
         private const double BallRadius = 10;
+
+        private System.Timers.Timer? MoveTimer;
+        private DateTime lastUpdateTime;
 
         [Conditional("DEBUG")]
         internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList)
