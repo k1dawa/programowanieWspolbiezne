@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO;
-using System.Timers;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -14,17 +13,10 @@ namespace TP.ConcurrentProgramming.Data
     {
         public DataImplementation()
         {
-            MoveTimer = new System.Timers.Timer(1); // co 1 ms
-            MoveTimer.Elapsed += OnMoveTimerElapsed;
-            MoveTimer.AutoReset = true;
-            lastUpdateTime = DateTime.UtcNow;
-            MoveTimer.Start();
             LogTimer = new System.Timers.Timer(100); // co 100 ms
             LogTimer.Elapsed += OnLogTimerElapsed;
             LogTimer.AutoReset = true;
             LogTimer.Start();
-            
-        
         }
 
         public override void Start(int numberOfBalls, double tableWidth, double tableHeight, Action<IVector, IBall> upperLayerHandler)
@@ -51,6 +43,7 @@ namespace TP.ConcurrentProgramming.Data
                     Ball newBall = new(position, velocity);
                     BallsList.Add(newBall);
                     upperLayerHandler(position, newBall);
+                    StartBallThread(newBall);
                 }
             }
         }
@@ -74,6 +67,7 @@ namespace TP.ConcurrentProgramming.Data
             }
 
             upperLayerHandler(position, newBall);
+            StartBallThread(newBall);
         }
 
         public override void RemoveLastBall()
@@ -84,66 +78,72 @@ namespace TP.ConcurrentProgramming.Data
             lock (BallsList)
             {
                 if (BallsList.Count > 0)
+                {
+                    BallsList[^1].ShouldStop = true;
                     BallsList.RemoveAt(BallsList.Count - 1);
+                }
             }
         }
 
-        private void OnMoveTimerElapsed(object? sender, ElapsedEventArgs e)
+        private void StartBallThread(Ball ball)
         {
-            if (Disposed) return;
-
-            lock (BallsList)
+            Task.Run(() =>
             {
-                var now = DateTime.UtcNow;
-                double deltaTime = (now - lastUpdateTime).TotalSeconds;
-                lastUpdateTime = now;
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
 
-                Move(deltaTime);
-            }
+                while (!Disposed && !ball.ShouldStop)
+                {
+                    double deltaTime = stopwatch.Elapsed.TotalSeconds;
+                    stopwatch.Restart();
+
+                    lock (BallsList)
+                    {
+                        foreach (var otherBall in BallsList)
+                        {
+                            if (otherBall != ball)
+                            {
+                                HandleCollision(ball, otherBall);
+                            }
+                        }
+
+                        MoveBall(ball, deltaTime);
+                    }
+
+                    Thread.Sleep(1);
+                }
+            });
         }
 
-        private void Move(double deltaTime)
+        private void MoveBall(Ball ball, double deltaTime)
         {
-            if (Disposed) return;
+            Vector deltaPosition = ((Vector)ball.Velocity) * deltaTime;
+            Vector newPosition = (Vector)ball.Position + deltaPosition;
 
-            for (int i = 0; i < BallsList.Count; i++)
+            double minX = BallRadius;
+            double maxX = TableWidth - BallRadius;
+            double minY = BallRadius;
+            double maxY = TableHeight - BallRadius;
+
+            double velX = ball.Velocity.X;
+            double velY = ball.Velocity.Y;
+
+            if (newPosition.X <= minX || newPosition.X >= maxX)
             {
-                for (int j = i + 1; j < BallsList.Count; j++)
-                {
-                    HandleCollision(BallsList[i], BallsList[j]);
-                }
+                velX *= -1;
+                newPosition = new Vector(Math.Clamp(newPosition.X, minX, maxX), newPosition.Y);
             }
 
-            foreach (Ball ball in BallsList)
+            if (newPosition.Y <= minY || newPosition.Y >= maxY)
             {
-                Vector deltaPosition = ((Vector)ball.Velocity) * deltaTime;
-                Vector newPosition = (Vector)ball.Position + deltaPosition;
-
-                double minX = BallRadius;
-                double maxX = TableWidth - BallRadius;
-                double minY = BallRadius;
-                double maxY = TableHeight - BallRadius;
-
-                double velX = ball.Velocity.X;
-                double velY = ball.Velocity.Y;
-
-                if (newPosition.X <= minX || newPosition.X >= maxX)
-                {
-                    velX *= -1;
-                    newPosition = new Vector(Math.Clamp(newPosition.X, minX, maxX), newPosition.Y);
-                }
-
-                if (newPosition.Y <= minY || newPosition.Y >= maxY)
-                {
-                    velY *= -1;
-                    newPosition = new Vector(newPosition.X, Math.Clamp(newPosition.Y, minY, maxY));
-                }
-
-                ball.Velocity = new Vector(velX, velY);
-                ball.Move(newPosition - (Vector)ball.Position);
-
-                LogQueue.Enqueue($"{DateTime.Now:HH:mm:ss.fff};{ball.Id};{newPosition.X:F2};{newPosition.Y:F2}");
+                velY *= -1;
+                newPosition = new Vector(newPosition.X, Math.Clamp(newPosition.Y, minY, maxY));
             }
+
+            ball.Velocity = new Vector(velX, velY);
+            ball.Move(newPosition - (Vector)ball.Position);
+
+            LogQueue.Enqueue($"{DateTime.Now:HH:mm:ss.fff};{ball.Id};{newPosition.X:F2};{newPosition.Y:F2}");
         }
 
         private void HandleCollision(Ball ballA, Ball ballB)
@@ -172,7 +172,7 @@ namespace TP.ConcurrentProgramming.Data
             ballB.Velocity = (Vector)ballB.Velocity + correctionB;
         }
 
-        private void OnLogTimerElapsed(object? sender, ElapsedEventArgs e)
+        private void OnLogTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
             if (Disposed) return;
 
@@ -199,14 +199,14 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (disposing)
                 {
-                    MoveTimer?.Stop();
-                    MoveTimer?.Dispose();
-
                     LogTimer?.Stop();
                     LogTimer?.Dispose();
 
                     lock (BallsList)
                     {
+                        foreach (var ball in BallsList)
+                            ball.ShouldStop = true;
+
                         BallsList.Clear();
                     }
                 }
@@ -228,10 +228,7 @@ namespace TP.ConcurrentProgramming.Data
         private double TableHeight;
         private const double BallRadius = 10;
 
-        private System.Timers.Timer? MoveTimer;
         private System.Timers.Timer? LogTimer;
-        private DateTime lastUpdateTime;
-
         private readonly object LogFileLock = new();
         private readonly string LogFilePath = Path.Combine(AppContext.BaseDirectory, "diagnostics.csv");
 
@@ -259,4 +256,8 @@ namespace TP.ConcurrentProgramming.Data
             returnInstanceDisposed(Disposed);
         }
     }
+
+    // Zakładam, że klasa Ball rozszerza IBall i zawiera pole ShouldStop.
+    // Dodaj następujące pole do klasy Ball:
+    // public volatile bool ShouldStop = false;
 }

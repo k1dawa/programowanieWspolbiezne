@@ -24,6 +24,7 @@ namespace TP.ConcurrentProgramming.Data
             Diameter = diameter;
             Mass = mass;
             Radius = diameter / 2;
+            
         }
 
         public event EventHandler<IVector>? NewPositionNotification;
@@ -34,7 +35,7 @@ namespace TP.ConcurrentProgramming.Data
         public double Diameter { get; }
         public double Radius { get; }
         public double Mass { get; }
-
+        public volatile bool ShouldStop = false;
         internal void Move(Vector delta)
         {
             Position = new Vector(Position.X + delta.X, Position.Y + delta.Y);
