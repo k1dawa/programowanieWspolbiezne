@@ -14,7 +14,7 @@ namespace TP.ConcurrentProgramming.Data
     {
         public DataImplementation()
         {
-            LogTimer = new System.Timers.Timer(100); // co 100 ms
+            LogTimer = new System.Timers.Timer(100); 
             LogTimer.Elapsed += OnLogTimerElapsed;
             LogTimer.AutoReset = true;
             LogTimer.Start();
@@ -45,7 +45,7 @@ namespace TP.ConcurrentProgramming.Data
                     BallsList.Add(newBall);
                     upperLayerHandler(position, newBall);
 
-                    // Tworzenie i uruchamianie wątku dla każdej kuli
+                  
                     BallWorker worker = new BallWorker(newBall, BallsLock, BallsList, () => Disposed, TableWidth, TableHeight, BallRadius);
                     Thread ballThread = new Thread(worker.Run);
                     
@@ -76,7 +76,7 @@ namespace TP.ConcurrentProgramming.Data
 
             upperLayerHandler(position, newBall);
 
-            // Tworzenie i uruchamianie wątku dla nowej kuli
+           
             BallWorker worker = new BallWorker(newBall, BallsLock, BallsList, () => Disposed, TableWidth, TableHeight, BallRadius);
             Thread ballThread = new Thread(worker.Run);
             
@@ -97,18 +97,18 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (BallsList.Count > 0)
                 {
-                    // Pobierz ostatnie elementy
+                   
                     workerToStop = BallWorkers[BallWorkers.Count - 1];
                     threadToStop = BallThreads[BallThreads.Count - 1];
 
-                    // Usuń z list
+                 
                     BallsList.RemoveAt(BallsList.Count - 1);
                     BallWorkers.RemoveAt(BallWorkers.Count - 1);
                     BallThreads.RemoveAt(BallThreads.Count - 1);
                 }
             }
 
-            // Zatrzymaj wątek poza lockiem
+           
             if (workerToStop != null && threadToStop != null)
             {
                 workerToStop.Stop();
@@ -159,13 +159,12 @@ namespace TP.ConcurrentProgramming.Data
                     LogTimer?.Stop();
                     LogTimer?.Dispose();
 
-                    // Zatrzymaj wszystkie workery
+                  
                     foreach (var worker in BallWorkers)
                     {
                         worker.Stop();
                     }
-
-                    // Poczekaj na zakończenie wszystkich wątków
+                    
                     foreach (var thread in BallThreads)
                     {
                         thread.Join();
@@ -244,14 +243,13 @@ namespace TP.ConcurrentProgramming.Data
                     {
                         if (_isDisposed() || _shouldStop) break;
 
-                        // Sprawdź kolizje z innymi kulami
+                       
                         HandleCollisions();
 
-                        // Aktualizuj pozycję
                         UpdatePosition(deltaTime);
                     }
 
-                    Thread.Sleep(16); // ~60 FPS
+                    Thread.Sleep(16); 
                 }
             }
 
@@ -273,7 +271,6 @@ namespace TP.ConcurrentProgramming.Data
                 double velX = _ball.Velocity.X;
                 double velY = _ball.Velocity.Y;
 
-                // Odbicie od ścian
                 if (newPosition.X <= minX || newPosition.X >= maxX)
                 {
                     velX *= -1;
